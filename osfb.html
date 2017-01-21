@@ -15,12 +15,12 @@ span { width: 20px; height: 20px; display: inline-block; }
 .t { background: purple; }
 .z { background: red; }
 #playfield { background: black; width: 200px; margin-left: auto; margin-right: auto; }
+#gameover { display: none; width: 200px; margin-left: auto; margin-right: auto; position: fixed; font-size: 50px; top: 0; color: white; text-align: center; halign: middle; text-shadow: 1px 1px black; }
 </style>
 <script type="text/javascript">
 var fieldwidth = 10;
 var fieldheight = 20;
 var currentpiece = undefined;
-var timer;
 
 function nextpiece() {
 	var pieces = [ 'i', 'j', 'l', 'o', 's', 't', 'z' ];
@@ -43,34 +43,39 @@ function nextpiece() {
 		if (piece[i].y < piece.top) { piece.top = piece[i].y; } else if (piece[i].y > piece.bottom) { piece.bottom = piece[i].y; }
 		if (piece[i].x < piece.left) { piece.left = piece[i].x; } else if (piece[i].x > piece.right) { piece.right = piece[i].x; }
 	}
-	//console.log(piece);
 	return piece;
 }
 
-function cleartimer() { window.clearInterval(timer); }
-function settimer() { timer = window.setInterval(advance, 500); }
+function cleartimer() { window.clearInterval(window.timer); }
+function settimer() { window.timer = window.setInterval(advance, 500); }
 function getblock(y, x) { return document.getElementById(y + "-" + x); }
 function clearblock(y, x) { getblock(y, x).className = ""; }
 function setblock(y, x, t) { getblock(y, x).className = t; }
 
+function gameover() {
+	cleartimer();
+	init();
+	var go = document.getElementById("gameover");
+	go.style.display = "block";
+}
+
 function advance() {
-	if (currentpiece == undefined) {
-		currentpiece = nextpiece();
-	} else {
-		for (var block = 0; block < 4; block++) {
-			if (currentpiece[block].y == currentpiece.bottom && currentpiece[block].y + 1 >= fieldheight) {
-				currentpiece = nextpiece();
+	for (var block = 0; block < 4; block++) {
+		if ((currentpiece[block].y == currentpiece.bottom && currentpiece[block].y + 1 >= fieldheight)
+			|| ((currentpiece[block].y == currentpiece.bottom && getblock(currentpiece[block].y + 1, currentpiece[block].x).className != ""))) {
+			currentpiece = nextpiece();
+			for (var i = 0; i < 4; i++) {
+				if (getblock(currentpiece[i].y, currentpiece[i].x).className != "") {
+					gameover();
+					return;
+				}
 			}
-			if (currentpiece[block].y == currentpiece.bottom && getblock(currentpiece[block].y + 1, currentpiece[block].x).className != "") {
-				var b = getblock(currentpiece[block].y + 1, currentpiece[block].x);
-				currentpiece = nextpiece();
-			}
+			/* check for cleared lines */
 		}
+	}
 		
-		for (var block = 0; block < 4; block++) {
-			clearblock(currentpiece[block].y, currentpiece[block].x);
-		}
-		
+	for (var block = 0; block < 4; block++) {
+		clearblock(currentpiece[block].y, currentpiece[block].x);
 	}
 
 	currentpiece.top++;
@@ -85,9 +90,11 @@ function left() {
 	cleartimer();
 	for (var block = 0; block < 4; block++) {
 		if (currentpiece[block].x < 1) {
+			settimer();
 			return;
 		}
 		if (currentpiece[block].x == currentpiece.left && getblock(currentpiece[block].y, currentpiece[block].x - 1).className != "") {
+			settimer();
 			return;
 		}
 	}
@@ -105,15 +112,17 @@ function right() {
 	cleartimer();
 	for (var block = 0; block < 4; block++) {
 		if (currentpiece[block].x+1 >= fieldwidth) {
+			settimer();
 			return;
 		}
 		if (currentpiece[block].x == currentpiece.right && getblock(currentpiece[block].y, currentpiece[block].x + 1).className != "") {
+			settimer();
 			return;
 		}
 	}
 	currentpiece.left++;
 	currentpiece.right++;
-	for (var block = 0; block < 4; block++) {
+	for (var block = 3; block >= 0; block--) {
 		clearblock(currentpiece[block].y, currentpiece[block].x);
 		currentpiece[block].x++;
 		setblock(currentpiece[block].y, currentpiece[block].x, currentpiece.type);
@@ -137,11 +146,55 @@ function counterclockwise() {
 }
 
 function startgame() {
-	timer = window.setInterval(advance, 500);
-}
+	var go = document.getElementById("gameover");
+	go.style.display = "none";
+	for (var y = 0; y < fieldheight; y++) {
+		for (var x = 0; x < fieldwidth; x++) {
+			clearblock(y, x);
+		}
+	}
+	window.onkeydown = function(e) {
+		var key = e.keyCode ? e.keyCode : e.which;
+		switch (key) {
+		case 32: /* space */
+		case 90: /* z */
+			clockwise();
+			break;
 
-function quitgame() {
-	window.clearTimetout(timer);
+		case 88: /* x */
+			counterclockwise();
+			break;
+
+		case 27: /* escape */
+			gameover();
+			break;
+		
+		case 37: /* left */
+		case 87: /* w */
+			left();
+			break;
+
+		case 38: /* up */
+			harddrop();
+			break;
+
+		case 39: /* right */
+		case 83: /* d */
+			right();
+			break;
+
+		case 40: /* down */
+		case 65: /* s */
+			softdrop();
+			break;
+
+                default:
+			console.log(key);
+                        return false;
+                }
+        }
+	currentpiece = nextpiece();
+	settimer();
 }
 
 function init() {
@@ -149,28 +202,16 @@ function init() {
 		var key = e.keyCode ? e.keyCode : e.which;
 		switch (key) {
 		case 32: /* space */
-			clockwise();
-			break;
-
 		case 13: /* enter */
 		case 83: /* 's' */
 			startgame();
 			break;
 
-		case 27: /* escape */
-			quitgame();
-			break;
-		
-		case 37: left(); break;
-		case 38: harddrop(); break;
-		case 39: right(); break;
-		case 40: softdrop(); break;
                 default:
-			console.log(key);
+			//console.log(key);
                         return false;
                 }
         }
-	
 }
 </script>
 </head>
@@ -196,6 +237,7 @@ function init() {
 <div class="row"><span id="17-0"></span><span id="17-1"></span><span id="17-2"></span><span id="17-3"></span><span id="17-4"></span><span id="17-5"></span><span id="17-6"></span><span id="17-7"></span><span id="17-8"></span><span id="17-9"></span></div>
 <div class="row"><span id="18-0"></span><span id="18-1"></span><span id="18-2"></span><span id="18-3"></span><span id="18-4"></span><span id="18-5"></span><span id="18-6"></span><span id="18-7"></span><span id="18-8"></span><span id="18-9"></span></div>
 <div class="row"><span id="19-0"></span><span id="19-1"></span><span id="19-2"></span><span id="19-3"></span><span id="19-4"></span><span id="19-5"></span><span id="19-6"></span><span id="19-7"></span><span id="19-8"></span><span id="19-9"></span></div>
+<div id="gameover">Game over</div>
 </div>
 </body>
 </html>
