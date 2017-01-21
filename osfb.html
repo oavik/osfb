@@ -76,7 +76,7 @@ function nextpiece() {
 }
 
 function cleartimer() { window.clearInterval(window.timer); }
-function settimer() { window.timer = window.setInterval(advance, 500); }
+function settimer() { window.timer = window.setInterval(advanceone, 500); }
 function getblock(y, x) { return document.getElementById(y + "-" + x); }
 function blocktype(y, x) { return getblock(y,x).className; }
 function clearblock(y, x) { if (getblock(y, x)) { getblock(y, x).className = ""; } }
@@ -158,7 +158,8 @@ function hascollision(piece) {
 	return false;
 }
 
-function advance() {
+function advance(rows) {
+	console.log("advancing " + rows);
 	if (currentpiece.top + currentpiece.height == fieldheight - 1) {
 		lockpiece(currentpiece);
 		currentpiece = nextpiece();
@@ -168,7 +169,10 @@ function advance() {
 	}
 
 	clearpiece(currentpiece);
-	currentpiece.top++;
+	while (rows > 0 && !hascollision(currentpiece)) {
+		currentpiece.top++;
+		rows--;
+	}
 
 	if (hascollision(currentpiece)) {
 		currentpiece.top--;
@@ -184,6 +188,8 @@ function advance() {
 
 	drawpiece(currentpiece);
 }
+
+function advanceone() { advance(1); }
 
 function isoutofbounds(piece) {
 	return (piece.left < 0 || piece.left + piece.width >= fieldwidth);
@@ -202,11 +208,14 @@ function move(amount) {
 
 function softdrop() {
 	cleartimer();
-	advance();
+	advance(1);
 	settimer();
 }
 
 function harddrop() {
+	cleartimer();
+	advance(fieldheight - currentpiece.top);
+	settimer();
 }
 
 function rotate(dir) {
@@ -240,12 +249,10 @@ function touchend(e) {
 	e.preventDefault();
 	var dx = window.touchx - e.changedTouches[0].screenX;
 	var dy = window.touchy - e.changedTouches[0].screenY;
-	if (dx > 10 || dx < -10) {
-		move(Math.floor(-dx / (window.innerWidth / 10)));
-	} else if (dy < -10) {
-		//for (i = 0; i < dy / -10; i++) {
-			advance();
-		//}
+	if (dx > (window.innerWidth / fieldwidth) || dx < -(window.innerWidth / fieldwidth)) {
+		move(Math.floor(-dx / (window.innerWidth / fieldwidth)));
+	} else if (dy < -(window.innerHeight / fieldheight)) {
+		advance(Math.floor(-dy / (window.innerHeight / fieldheight)));
 	} else {
 		rotate(1);
 	}
