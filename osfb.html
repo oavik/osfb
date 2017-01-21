@@ -14,7 +14,7 @@ span { display: inline-block; }
 .t { background: purple; }
 .z { background: red; }
 #playfield { background: black; margin-left: auto; margin-right: auto; }
-#gameover { display: none; margin-left: auto; margin-right: auto; position: fixed; font-size: 50px; top: 0; color: white; text-align: center; text-shadow: 1px 1px black; }
+#gameover { display: none; margin-left: auto; margin-right: auto; position: fixed; top: 0; color: white; text-align: center; text-shadow: 1px 1px black; }
 #scoreboard { background: black; margin-left: auto; margin-right: auto; color: white; }
 #scoreboard div { display: inline; }
 #scoreboard div + div { float: right; }
@@ -266,6 +266,7 @@ function resize() {
 	var go = document.getElementById("gameover");
 	go.style.width = (fieldwidth * size) + "px";
 	go.style.height = (fieldheight * size) + "px";
+	go.style.fontSize = (size * 4) + "px";
 
 	var sb = document.getElementById("scoreboard");
 	sb.style.width = (fieldwidth * size) + "px";
