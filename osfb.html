@@ -61,7 +61,6 @@ function nextpiece() {
 	var piece = {};
 	piece.type = pieces[Math.floor(Math.random() * pieces.length)];
 	piece.left = 0;
-	piece.right = 0;
 	piece.top = 0;
 	piece.rotation = 0;
 	for (var i = 0; i < 4; i++) {
@@ -81,7 +80,7 @@ function setblock(y, x, t) { getblock(y, x).className = t; }
 
 function gameover() {
 	cleartimer();
-	init();
+	reinit();
 	var go = document.getElementById("gameover");
 	go.style.display = "block";
 }
@@ -234,6 +233,34 @@ function rotate(dir) {
 	settimer();
 }
 
+function touchstart(e) {
+	e.preventDefault();
+	console.log("start"); console.log(e.touches[0]);
+	window.touchx = e.touches[0].screenX;
+	window.touchy = e.touches[0].screenY;
+}
+
+function touchend(e) {
+	e.preventDefault();
+	var dx = window.touchx - e.changedTouches[0].screenX;
+	var dy = window.touchy - e.changedTouches[0].screenY;
+	if (dx > 10) {
+		for (i = 0; i < dx / 10; i++) {
+			left();
+		}
+	} else if (dx < -10) {
+		for (i = 0; i < dx / -10; i++) {
+			right();
+		}
+	} else if (dy < -10) {
+		for (i = 0; i < dy / -10; i++) {
+			advance();
+		}
+	} else {
+		rotate(1);
+	}
+}
+
 function startgame() {
 	window.score = 0;
 	window.lines = 0;
@@ -287,34 +314,46 @@ function startgame() {
 			console.log(key);
                 }
         }
+
+	window.onclick = undefined;
+
+	var span = document.getElementsByTagName("span");
+
+	for (var i = 0; i < span.length; i++) {
+		//span[i].addEventListener('touchmove', swipe, false);
+		span[i].addEventListener('touchstart', touchstart, false);
+		//span[i].addEventListener('touchcancel', swipe, false);
+		span[i].addEventListener('touchend', touchend, false);
+	}
+
 	currentpiece = nextpiece();
 	drawpiece(currentpiece);
 	settimer();
 }
 
 function resize() {
-	var size = Math.floor(Math.min(window.innerWidth / fieldwidth, window.innerHeight / (fieldheight+1)));
+	window.blocksize = Math.floor(Math.min(window.innerWidth / fieldwidth, window.innerHeight / (fieldheight+1)));
 	for (var y = 0; y < fieldheight; y++) {
 		for (var x = 0; x < fieldwidth; x++) {
 			var b = getblock(y, x);
-			b.style.width = (size - 2) + "px";
-			b.style.height = (size - 2) + "px";
+			b.style.width = (window.blocksize - 2) + "px";
+			b.style.height = (window.blocksize - 2) + "px";
 		}
 	}
 	var field = document.getElementById("playfield");
-	field.style.width = (fieldwidth * size) + "px";
-	field.style.height = (fieldheight * size) + "px";
+	field.style.width = (fieldwidth * window.blocksize) + "px";
+	field.style.height = (fieldheight * window.blocksize) + "px";
 	for (var i = 0; i < field.children.length; i++) {
-		field.children[i].style.height = size + "px";
+		field.children[i].style.height = window.blocksize + "px";
 	}
 
 	var go = document.getElementById("gameover");
-	go.style.width = (fieldwidth * size) + "px";
-	go.style.height = (fieldheight * size) + "px";
-	go.style.fontSize = (size * 4) + "px";
+	go.style.width = (fieldwidth * window.blocksize) + "px";
+	go.style.height = (fieldheight * window.blocksize) + "px";
+	go.style.fontSize = (window.blocksize * 4) + "px";
 
 	var sb = document.getElementById("scoreboard");
-	sb.style.width = (fieldwidth * size) + "px";
+	sb.style.width = (fieldwidth * window.blocksize) + "px";
 
 	if (window.innerWidth > window.innerHeight) {
 		/* wide */
@@ -323,7 +362,7 @@ function resize() {
 	}
 }
 
-function init() {
+function reinit() {
 	resize();
 	window.onresize = resize;
 	window.onkeydown = function(e) {
@@ -339,6 +378,27 @@ function init() {
 			//console.log(key);
                 }
         }
+	window.onclick = startgame;
+}
+
+function init() {
+	var body = document.getElementsByTagName("body")[0];
+	var playfield = document.createElement("div");
+	playfield.id = "playfield";
+
+	for (var i = 0; i < fieldheight; i++) {
+		var row = document.createElement("div");
+		row.className = "row";
+		for (var j = 0; j < fieldwidth; j++) {
+			var block = document.createElement("span");
+			block.id = i + "-" + j;
+			row.appendChild(block);
+		}
+		playfield.appendChild(row);
+       	}
+	body.appendChild(playfield);
+
+	reinit();
 }
 </script>
 </head>
@@ -347,27 +407,6 @@ function init() {
 <div>Score: <div id="score">0</div></div>
 <div>Lines: <div id="lines">0</div></div>
 </div>
-<div id="playfield">
-<div class="row"><span id="0-0"></span><span id="0-1"></span><span id="0-2"></span><span id="0-3"></span><span id="0-4"></span><span id="0-5"></span><span id="0-6"></span><span id="0-7"></span><span id="0-8"></span><span id="0-9"></span></div>
-<div class="row"><span id="1-0"></span><span id="1-1"></span><span id="1-2"></span><span id="1-3"></span><span id="1-4"></span><span id="1-5"></span><span id="1-6"></span><span id="1-7"></span><span id="1-8"></span><span id="1-9"></span></div>
-<div class="row"><span id="2-0"></span><span id="2-1"></span><span id="2-2"></span><span id="2-3"></span><span id="2-4"></span><span id="2-5"></span><span id="2-6"></span><span id="2-7"></span><span id="2-8"></span><span id="2-9"></span></div>
-<div class="row"><span id="3-0"></span><span id="3-1"></span><span id="3-2"></span><span id="3-3"></span><span id="3-4"></span><span id="3-5"></span><span id="3-6"></span><span id="3-7"></span><span id="3-8"></span><span id="3-9"></span></div>
-<div class="row"><span id="4-0"></span><span id="4-1"></span><span id="4-2"></span><span id="4-3"></span><span id="4-4"></span><span id="4-5"></span><span id="4-6"></span><span id="4-7"></span><span id="4-8"></span><span id="4-9"></span></div>
-<div class="row"><span id="5-0"></span><span id="5-1"></span><span id="5-2"></span><span id="5-3"></span><span id="5-4"></span><span id="5-5"></span><span id="5-6"></span><span id="5-7"></span><span id="5-8"></span><span id="5-9"></span></div>
-<div class="row"><span id="6-0"></span><span id="6-1"></span><span id="6-2"></span><span id="6-3"></span><span id="6-4"></span><span id="6-5"></span><span id="6-6"></span><span id="6-7"></span><span id="6-8"></span><span id="6-9"></span></div>
-<div class="row"><span id="7-0"></span><span id="7-1"></span><span id="7-2"></span><span id="7-3"></span><span id="7-4"></span><span id="7-5"></span><span id="7-6"></span><span id="7-7"></span><span id="7-8"></span><span id="7-9"></span></div>
-<div class="row"><span id="8-0"></span><span id="8-1"></span><span id="8-2"></span><span id="8-3"></span><span id="8-4"></span><span id="8-5"></span><span id="8-6"></span><span id="8-7"></span><span id="8-8"></span><span id="8-9"></span></div>
-<div class="row"><span id="9-0"></span><span id="9-1"></span><span id="9-2"></span><span id="9-3"></span><span id="9-4"></span><span id="9-5"></span><span id="9-6"></span><span id="9-7"></span><span id="9-8"></span><span id="9-9"></span></div>
-<div class="row"><span id="10-0"></span><span id="10-1"></span><span id="10-2"></span><span id="10-3"></span><span id="10-4"></span><span id="10-5"></span><span id="10-6"></span><span id="10-7"></span><span id="10-8"></span><span id="10-9"></span></div>
-<div class="row"><span id="11-0"></span><span id="11-1"></span><span id="11-2"></span><span id="11-3"></span><span id="11-4"></span><span id="11-5"></span><span id="11-6"></span><span id="11-7"></span><span id="11-8"></span><span id="11-9"></span></div>
-<div class="row"><span id="12-0"></span><span id="12-1"></span><span id="12-2"></span><span id="12-3"></span><span id="12-4"></span><span id="12-5"></span><span id="12-6"></span><span id="12-7"></span><span id="12-8"></span><span id="12-9"></span></div>
-<div class="row"><span id="13-0"></span><span id="13-1"></span><span id="13-2"></span><span id="13-3"></span><span id="13-4"></span><span id="13-5"></span><span id="13-6"></span><span id="13-7"></span><span id="13-8"></span><span id="13-9"></span></div>
-<div class="row"><span id="14-0"></span><span id="14-1"></span><span id="14-2"></span><span id="14-3"></span><span id="14-4"></span><span id="14-5"></span><span id="14-6"></span><span id="14-7"></span><span id="14-8"></span><span id="14-9"></span></div>
-<div class="row"><span id="15-0"></span><span id="15-1"></span><span id="15-2"></span><span id="15-3"></span><span id="15-4"></span><span id="15-5"></span><span id="15-6"></span><span id="15-7"></span><span id="15-8"></span><span id="15-9"></span></div>
-<div class="row"><span id="16-0"></span><span id="16-1"></span><span id="16-2"></span><span id="16-3"></span><span id="16-4"></span><span id="16-5"></span><span id="16-6"></span><span id="16-7"></span><span id="16-8"></span><span id="16-9"></span></div>
-<div class="row"><span id="17-0"></span><span id="17-1"></span><span id="17-2"></span><span id="17-3"></span><span id="17-4"></span><span id="17-5"></span><span id="17-6"></span><span id="17-7"></span><span id="17-8"></span><span id="17-9"></span></div>
-<div class="row"><span id="18-0"></span><span id="18-1"></span><span id="18-2"></span><span id="18-3"></span><span id="18-4"></span><span id="18-5"></span><span id="18-6"></span><span id="18-7"></span><span id="18-8"></span><span id="18-9"></span></div>
-<div class="row"><span id="19-0"></span><span id="19-1"></span><span id="19-2"></span><span id="19-3"></span><span id="19-4"></span><span id="19-5"></span><span id="19-6"></span><span id="19-7"></span><span id="19-8"></span><span id="19-9"></span></div>
 <div id="gameover">Game over</div>
 </div>
 <!-- <audio src="Korobeiniki.mp3" autoplay loop></audio> -->
