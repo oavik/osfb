@@ -16,11 +16,15 @@ span { width: 20px; height: 20px; display: inline-block; }
 .z { background: red; }
 #playfield { background: black; width: 200px; margin-left: auto; margin-right: auto; }
 #gameover { display: none; width: 200px; margin-left: auto; margin-right: auto; position: fixed; font-size: 50px; top: 0; color: white; text-align: center; halign: middle; text-shadow: 1px 1px black; }
+#scoreboard { background: black; width: 200px; margin-left: auto; margin-right: auto; color: white; }
+#scoreboard div { display: inline; }
+#scoreboard div + div { float: right; }
 </style>
 <script type="text/javascript">
 var fieldwidth = 10;
 var fieldheight = 20;
 var currentpiece = undefined;
+var scores = [ 0, 100, 200, 400, 800 ];
 
 function nextpiece() {
 	var pieces = [ 'i', 'j', 'l', 'o', 's', 't', 'z' ];
@@ -84,24 +88,34 @@ function clearlines() {
 	for (var y = 0; y < fieldheight; y++) {
 		lines += clearline(y);
 	}
+	return lines;
+}
 
-	console.log("cleared " + lines + " lines");
+function updatescore() {
+	document.getElementById("score").innerHTML = window.score;
+	document.getElementById("lines").innerHTML = window.lines;
 }
 
 function advance() {
 	for (var block = 0; block < 4; block++) {
+		/* FIXME: overhang */
 		if ((currentpiece[block].y == currentpiece.bottom && currentpiece[block].y + 1 >= fieldheight)
 			|| ((currentpiece[block].y == currentpiece.bottom && blocktype(currentpiece[block].y + 1, currentpiece[block].x) != ""))) {
+
 			currentpiece = nextpiece();
-			/*
 			for (var i = 0; i < 4; i++) {
 				if (blocktype(currentpiece[i].y, currentpiece[i].x) != "") {
 					gameover();
 					return;
 				}
 			}
-			*/
-			clearlines();
+			
+			var cleared = clearlines();
+			if (cleared > 0) {
+				window.score += scores[cleared];
+				window.lines += cleared;
+				updatescore();
+			}
 		}
 	}
 		
@@ -177,13 +191,19 @@ function counterclockwise() {
 }
 
 function startgame() {
+	window.score = 0;
+	window.lines = 0;
+	updatescore();
+
 	var go = document.getElementById("gameover");
 	go.style.display = "none";
+
 	for (var y = 0; y < fieldheight; y++) {
 		for (var x = 0; x < fieldwidth; x++) {
 			clearblock(y, x);
 		}
 	}
+
 	window.onkeydown = function(e) {
 		var key = e.keyCode ? e.keyCode : e.which;
 		switch (key) {
@@ -247,6 +267,10 @@ function init() {
 </script>
 </head>
 <body onload="init();">
+<div id="scoreboard">
+<div>Score: <div id="score">0</div></div>
+<div>Lines: <div id="lines">0</div></div>
+</div>
 <div id="playfield">
 <div class="row"><span id="0-0"></span><span id="0-1"></span><span id="0-2"></span><span id="0-3"></span><span id="0-4"></span><span id="0-5"></span><span id="0-6"></span><span id="0-7"></span><span id="0-8"></span><span id="0-9"></span></div>
 <div class="row"><span id="1-0"></span><span id="1-1"></span><span id="1-2"></span><span id="1-3"></span><span id="1-4"></span><span id="1-5"></span><span id="1-6"></span><span id="1-7"></span><span id="1-8"></span><span id="1-9"></span></div>
