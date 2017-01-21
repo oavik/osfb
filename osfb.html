@@ -5,8 +5,8 @@
 <title>Falling Blocks</title>
 <style type="text/css">
 * { margin: 0; padding: 0; border: 0; }
-.row { height: 10px; }
-span { width: 10px; height: 10px; display: inline-block; }
+.row { height: 20px; }
+span { width: 20px; height: 20px; display: inline-block; }
 .i { background: cyan; }
 .j { background: blue; }
 .l { background: orange; }
@@ -14,7 +14,7 @@ span { width: 10px; height: 10px; display: inline-block; }
 .s { background: lime; }
 .t { background: purple; }
 .z { background: red; }
-#playfield { background: black; width: 100px; margin-left: auto; margin-right: auto; }
+#playfield { background: black; width: 200px; margin-left: auto; margin-right: auto; }
 </style>
 <script type="text/javascript">
 var fieldwidth = 10;
@@ -26,6 +26,10 @@ function nextpiece() {
 	var pieces = [ 'i', 'j', 'l', 'o', 's', 't', 'z' ];
 	var piece = {};
 	piece.type = pieces[Math.floor(Math.random() * pieces.length)];
+	piece.left = fieldwidth;
+	piece.right = 0;
+	piece.top = fieldheight;
+	piece.bottom = 0;
 	switch (piece.type) {
 		case 'i': piece[0] = { y: 0, x: 4 }; piece[1] = { y: 1, x: 4 }; piece[2] = { y: 2, x: 4 }; piece[3] = { y: 3, x: 4 }; break;
 		case 'j': piece[0] = { y: 0, x: 3 }; piece[1] = { y: 0, x: 4 }; piece[2] = { y: 0, x: 5 }; piece[3] = { y: 1, x: 5 }; break;
@@ -35,11 +39,18 @@ function nextpiece() {
 		case 't': piece[0] = { y: 0, x: 3 }; piece[1] = { y: 0, x: 4 }; piece[2] = { y: 0, x: 5 }; piece[3] = { y: 1, x: 4 }; break;
 		case 'z': piece[0] = { y: 0, x: 3 }; piece[1] = { y: 0, x: 4 }; piece[2] = { y: 1, x: 4 }; piece[3] = { y: 1, x: 5 }; break;
 	}
+	for (var i = 0; i < 4; i++) {
+		if (piece[i].y < piece.top) { piece.top = piece[i].y; } else if (piece[i].y > piece.bottom) { piece.bottom = piece[i].y; }
+		if (piece[i].x < piece.left) { piece.left = piece[i].x; } else if (piece[i].x > piece.right) { piece.right = piece[i].x; }
+	}
+	//console.log(piece);
 	return piece;
 }
 
+function cleartimer() { window.clearInterval(timer); }
+function settimer() { timer = window.setInterval(advance, 500); }
 function getblock(y, x) { return document.getElementById(y + "-" + x); }
-function clearblock(y, x) { getblock(y, x).className = undefined; }
+function clearblock(y, x) { getblock(y, x).className = ""; }
 function setblock(y, x, t) { getblock(y, x).className = t; }
 
 function advance() {
@@ -47,7 +58,11 @@ function advance() {
 		currentpiece = nextpiece();
 	} else {
 		for (var block = 0; block < 4; block++) {
-			if (currentpiece[block].y+1 >= fieldheight) {
+			if (currentpiece[block].y == currentpiece.bottom && currentpiece[block].y + 1 >= fieldheight) {
+				currentpiece = nextpiece();
+			}
+			if (currentpiece[block].y == currentpiece.bottom && getblock(currentpiece[block].y + 1, currentpiece[block].x).className != "") {
+				var b = getblock(currentpiece[block].y + 1, currentpiece[block].x);
 				currentpiece = nextpiece();
 			}
 		}
@@ -58,55 +73,58 @@ function advance() {
 		
 	}
 
+	currentpiece.top++;
+	currentpiece.bottom++;
 	for (var block = 0; block < 4; block++) {
 		currentpiece[block].y++;
 		setblock(currentpiece[block].y, currentpiece[block].x, currentpiece.type);
 	}
-
-	timer = window.setTimeout(advance, 500);
 }
 
 function left() {
+	cleartimer();
 	for (var block = 0; block < 4; block++) {
 		if (currentpiece[block].x < 1) {
 			return;
 		}
-	/*
-		if (getblock(currentpiece[block].y, currentpiece[block].x - 1).className != undefined) {
-			console.log("something in the way");
+		if (currentpiece[block].x == currentpiece.left && getblock(currentpiece[block].y, currentpiece[block].x - 1).className != "") {
 			return;
 		}
-	*/
 	}
+	currentpiece.left--;
+	currentpiece.right--;
 	for (var block = 0; block < 4; block++) {
 		clearblock(currentpiece[block].y, currentpiece[block].x);
 		currentpiece[block].x--;
 		setblock(currentpiece[block].y, currentpiece[block].x, currentpiece.type);
 	}
+	settimer();
 }
 
 function right() {
+	cleartimer();
 	for (var block = 0; block < 4; block++) {
 		if (currentpiece[block].x+1 >= fieldwidth) {
 			return;
 		}
-	/*
-		if (getblock(currentpiece[block].y, currentpiece[block].x + 1).className != undefined) {
-			console.log("something in the way");
+		if (currentpiece[block].x == currentpiece.right && getblock(currentpiece[block].y, currentpiece[block].x + 1).className != "") {
 			return;
 		}
-	*/
 	}
+	currentpiece.left++;
+	currentpiece.right++;
 	for (var block = 0; block < 4; block++) {
 		clearblock(currentpiece[block].y, currentpiece[block].x);
 		currentpiece[block].x++;
 		setblock(currentpiece[block].y, currentpiece[block].x, currentpiece.type);
 	}
+	settimer();
 }
 
 function softdrop() {
-	window.clearTimeout(timer);
+	cleartimer();
 	advance();
+	settimer();
 }
 
 function harddrop() {
@@ -119,7 +137,7 @@ function counterclockwise() {
 }
 
 function startgame() {
-	timer = window.setTimeout(advance, 500);
+	timer = window.setInterval(advance, 500);
 }
 
 function quitgame() {
@@ -127,7 +145,7 @@ function quitgame() {
 }
 
 function init() {
-	window.onkeyup = function(e) {
+	window.onkeydown = function(e) {
 		var key = e.keyCode ? e.keyCode : e.which;
 		switch (key) {
 		case 32: /* space */
@@ -135,6 +153,7 @@ function init() {
 			break;
 
 		case 13: /* enter */
+		case 83: /* 's' */
 			startgame();
 			break;
 
