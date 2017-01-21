@@ -48,15 +48,12 @@ var rotations = {
 };
 
 function getbounds(piece) {
-	var height = 0;
-	var width = 0;
+	piece.height = 0;
+	piece.width = 0;
 	for (var i = 0; i < 4; i++) {
-		if (piece[i].y > height) { height = piece[i].y; }
-		if (piece[i].x > width) { width = piece[i].x; }
+		if (piece[i].y > piece.height) { piece.height = piece[i].y; }
+		if (piece[i].x > piece.width) { piece.width = piece[i].x; }
 	}
-	piece.left = Math.floor((fieldwidth / 2) - (width / 2));
-	piece.right = piece.left + width;
-	piece.bottom = piece.top + height;
 }
 
 function nextpiece() {
@@ -66,12 +63,12 @@ function nextpiece() {
 	piece.left = 0;
 	piece.right = 0;
 	piece.top = 0;
-	piece.bottom = 0;
 	piece.rotation = 0;
 	for (var i = 0; i < 4; i++) {
 		piece[i] = { y: rotations[piece.type][0][i].y, x: rotations[piece.type][0][i].x };
 	}
 	getbounds(piece);
+	piece.left = Math.floor((fieldwidth / 2) - (piece.width / 2));
 	return piece;
 }
 
@@ -149,7 +146,7 @@ function checklines() {
 }
 
 function advance() {
-	if (currentpiece.bottom == fieldheight - 1) {
+	if (currentpiece.top + currentpiece.height == fieldheight - 1) {
 		lockpiece(currentpiece);
 		currentpiece = nextpiece();
 		checklines();
@@ -177,7 +174,6 @@ function advance() {
 
 	clearpiece(currentpiece);
 	currentpiece.top++;
-	currentpiece.bottom++;
 	drawpiece(currentpiece);
 }
 
@@ -196,14 +192,13 @@ function left() {
 	}
 	clearpiece(currentpiece);
 	currentpiece.left--;
-	currentpiece.right--;
 	drawpiece(currentpiece);
 	settimer();
 }
 
 function right() {
 	cleartimer();
-	if (currentpiece.right >= fieldwidth - 1) {
+	if (currentpiece.left + currentpiece.width >= fieldwidth - 1) {
 		settimer();
 		return;
 	}
@@ -216,7 +211,6 @@ function right() {
 	}
 	clearpiece(currentpiece);
 	currentpiece.left++;
-	currentpiece.right++;
 	drawpiece(currentpiece);
 	settimer();
 }
@@ -230,27 +224,23 @@ function softdrop() {
 function harddrop() {
 }
 
-/* FIXME: warping to center */
 function rotate(dir) {
 	cleartimer();
 	clearpiece(currentpiece);
 
-	var log = "nrot: " + (rotations[currentpiece.type].length);
 	currentpiece.rotation += dir;
-	log += "; to: " + currentpiece.rotation;
 	if (currentpiece.rotation < 0) {
 		currentpiece.rotation = rotations[currentpiece.type].length - 1;
 	} else if (currentpiece.rotation >= rotations[currentpiece.type].length) {
 		currentpiece.rotation = 0;
 	}
-	console.log(log + "; => " + currentpiece.rotation);
 
 	for (var i = 0; i < 4; i++) {
 		currentpiece[i].y = rotations[currentpiece.type][currentpiece.rotation][i].y;
 		currentpiece[i].x = rotations[currentpiece.type][currentpiece.rotation][i].x;
 	}
 	getbounds(currentpiece);
-
+	/* FIXME: check for out of bounds and collisions */
 	drawpiece(currentpiece);
 	settimer();
 }
