@@ -26,7 +26,7 @@ var currentpiece = undefined;
 var scores = [ 0, 100, 200, 400, 800 ];
 
 var rotations = {
-	i: [ [ { y: 0, x: 3 }, { y: 1, x: 3 }, { y: 2, x: 3 }, { y: 3, x: 3 } ],
+	i: [ [ { y: 0, x: 0 }, { y: 1, x: 0 }, { y: 2, x: 0 }, { y: 3, x: 0 } ],
 	     [ { y: 0, x: 0 }, { y: 0, x: 1 }, { y: 0, x: 2 }, { y: 0, x: 2 } ] ],
 	j: [ [ { y: 0, x: 0 }, { y: 0, x: 1 }, { y: 0, x: 2 }, { y: 1, x: 2 } ],
 	     [ { y: 0, x: 1 }, { y: 1, x: 1 }, { y: 2, x: 0 }, { y: 2, x: 1 } ],
@@ -50,22 +50,22 @@ var rotations = {
 function nextpiece() {
 	var pieces = [ 'i', 'j', 'l', 'o', 's', 't', 'z' ];
 	var piece = {};
+	var width = 0;
 	piece.type = pieces[Math.floor(Math.random() * pieces.length)];
-	piece.left = fieldwidth;
+	piece.left = 0;
 	piece.right = 0;
-	piece.top = fieldheight;
+	piece.top = 0;
 	piece.bottom = 0;
 	piece.rotation = 0;
-	var left = 3;
 	for (var i = 0; i < 4; i++) {
 		piece[i] = rotations[piece.type][0][i];
-		piece[i].x += left;
-		//console.log(piece[i]);
 	}
 	for (var i = 0; i < 4; i++) {
-		if (piece[i].y < piece.top) { piece.top = piece[i].y; } else if (piece[i].y > piece.bottom) { piece.bottom = piece[i].y; }
-		if (piece[i].x < piece.left) { piece.left = piece[i].x; } else if (piece[i].x > piece.right) { piece.right = piece[i].x; }
+		if (piece[i].y > piece.bottom) { piece.bottom = piece[i].y; }
+		if (piece[i].x > width) { width = piece[i].x; }
 	}
+	piece.left = Math.floor((fieldwidth / 2) - (width / 2));
+	piece.right = piece.left + width;
 	return piece;
 }
 
@@ -91,7 +91,7 @@ function clearline(y) {
 	}
 	while (y > 0) {
 		for (var x = 0; x < fieldwidth; x++) {
-			setblock(y, x, blocktype(y-1, x));
+			setblock(y, x, blocktype(y - 1, x));
 		}
 		y--;
 	}
@@ -115,12 +115,46 @@ function updatescore() {
 	document.getElementById("lines").innerHTML = window.lines;
 }
 
-function advance() {
-	for (var block = 0; block < 4; block++) {
-		/* FIXME: overhang */
-		if ((currentpiece[block].y == currentpiece.bottom && currentpiece[block].y + 1 >= fieldheight)
-			|| ((currentpiece[block].y == currentpiece.bottom && blocktype(currentpiece[block].y + 1, currentpiece[block].x) != ""))) {
+function clearpiece(piece) {
+	for (var i = 0; i < 4; i++) {
+		clearblock(piece[i].y + piece.top, piece[i].x + piece.left);
+	}
+}
 
+function drawpiece(piece) {
+	for (var i = 0; i < 4; i++) {
+		setblock(piece[i].y + piece.top, piece[i].x + piece.left, "current " + piece.type);
+	}
+}
+
+function lockpiece(piece) {
+	for (var i = 0; i < 4; i++) {
+		setblock(piece[i].y + piece.top, piece[i].x + piece.left, piece.type);
+	}
+}
+
+function checklines() {
+	var cleared = clearlines();
+	if (cleared > 0) {
+		window.score += scores[cleared];
+		window.lines += cleared;
+		updatescore();
+	}
+}
+
+function advance() {
+	if (currentpiece.bottom == fieldheight - 1) {
+		lockpiece(currentpiece);
+		currentpiece = nextpiece();
+		checklines();
+		drawpiece(currentpiece);
+		return;
+	}
+
+	for (var i = 0; i < 4; i++) {
+		var below = blocktype(currentpiece.top + currentpiece[i].y + 1, currentpiece.left + currentpiece[i].x);
+		if (below != "" && !below.includes("current")) {
+			lockpiece(currentpiece);
 			currentpiece = nextpiece();
 			for (var i = 0; i < 4; i++) {
 				if (blocktype(currentpiece[i].y, currentpiece[i].x) != "") {
@@ -129,68 +163,55 @@ function advance() {
 				}
 			}
 			
-			var cleared = clearlines();
-			if (cleared > 0) {
-				window.score += scores[cleared];
-				window.lines += cleared;
-				updatescore();
-			}
+			checklines();
+			drawpiece(currentpiece);
+			return;
 		}
 	}
-		
-	for (var block = 0; block < 4; block++) {
-		clearblock(currentpiece[block].y, currentpiece[block].x);
-	}
 
+	clearpiece(currentpiece);
 	currentpiece.top++;
 	currentpiece.bottom++;
-	for (var block = 0; block < 4; block++) {
-		currentpiece[block].y++;
-		setblock(currentpiece[block].y, currentpiece[block].x, currentpiece.type);
-	}
+	drawpiece(currentpiece);
 }
 
 function left() {
 	cleartimer();
-	for (var block = 0; block < 4; block++) {
-		if (currentpiece[block].x < 1) {
-			settimer();
-			return;
-		}
-		if (currentpiece[block].x == currentpiece.left && blocktype(currentpiece[block].y, currentpiece[block].x - 1) != "") {
+	if (currentpiece.left < 1) {
+		settimer();
+		return;
+	}
+	for (var i = 0; i < 4; i++) {
+		var left = blocktype(currentpiece.top + currentpiece[i].y, currentpiece.left + currentpiece[i].x - 1);
+		if (left != "" && !left.includes("current")) {
 			settimer();
 			return;
 		}
 	}
+	clearpiece(currentpiece);
 	currentpiece.left--;
 	currentpiece.right--;
-	for (var block = 0; block < 4; block++) {
-		clearblock(currentpiece[block].y, currentpiece[block].x);
-		currentpiece[block].x--;
-		setblock(currentpiece[block].y, currentpiece[block].x, currentpiece.type);
-	}
+	drawpiece(currentpiece);
 	settimer();
 }
 
 function right() {
 	cleartimer();
-	for (var block = 0; block < 4; block++) {
-		if (currentpiece[block].x+1 >= fieldwidth) {
-			settimer();
-			return;
-		}
-		if (currentpiece[block].x == currentpiece.right && blocktype(currentpiece[block].y, currentpiece[block].x + 1) != "") {
+	if (currentpiece.right >= fieldwidth - 1) {
+		settimer();
+		return;
+	}
+	for (var i = 0; i < 4; i++) {
+		var right = blocktype(currentpiece.top + currentpiece[i].y, currentpiece.left + currentpiece[i].x + 1);
+		if (right != "" && !right.includes("current")) {
 			settimer();
 			return;
 		}
 	}
+	clearpiece(currentpiece);
 	currentpiece.left++;
 	currentpiece.right++;
-	for (var block = 3; block >= 0; block--) {
-		clearblock(currentpiece[block].y, currentpiece[block].x);
-		currentpiece[block].x++;
-		setblock(currentpiece[block].y, currentpiece[block].x, currentpiece.type);
-	}
+	drawpiece(currentpiece);
 	settimer();
 }
 
@@ -215,17 +236,12 @@ function rotate(dir) {
 	}
 
 	for (var i = 0; i < 4; i++) {
-		currentpiece[i] = rotations[currentpiece.type][currentpiece.rotation][i];
-		currentpiece[i].y += currentpiece.top;
-		currentpiece[i].x += currentpiece.left;
+		currentpiece[i].y = rotations[currentpiece.type][currentpiece.rotation][i].y;
+		currentpiece[i].x = rotations[currentpiece.type][currentpiece.rotation][i].x;
 	}
 
-	for (var i = 0; i < 4; i++) {
-		clearblock(oldpiece[i].y, oldpiece[i].x);
-	}
-	for (var i = 0; i < 4; i++) {
-		setblock(currentpiece[i].y, currentpiece[i].x, currentpiece.type);
-	}
+	clearpiece(oldpiece);
+	drawpiece(currentpiece);
 	settimer();
 }
 
@@ -283,6 +299,7 @@ function startgame() {
                 }
         }
 	currentpiece = nextpiece();
+	drawpiece(currentpiece);
 	settimer();
 }
 
