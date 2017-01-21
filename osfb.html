@@ -23,7 +23,7 @@ var fieldheight = 20;
 var currentpiece = undefined;
 
 function nextpiece() {
-	var pieces = [ 'i', 'o' ]; //[ 'i', 'j', 'l', 'o', 's', 't', 'z' ];
+	var pieces = [ 'i', 'j', 'l', 'o', 's', 't', 'z' ];
 	var piece = {};
 	piece.type = pieces[Math.floor(Math.random() * pieces.length)];
 	piece.left = fieldwidth;
@@ -66,12 +66,14 @@ function clearline(y) {
 			return 0;
 		}
 	}
-	for (var x = 0; x < fieldwidth; x++) {
-		if (y > 0) {
-			setblock(y, x, blocktype(y - 1, x));
-		} else {
-			clearblock(y, x);
+	while (y > 0) {
+		for (var x = 0; x < fieldwidth; x++) {
+			setblock(y, x, blocktype(y-1, x));
 		}
+		y--;
+	}
+	for (var x = 0; x < fieldwidth; x++) {
+		clearblock(0, x);
 	}
 	return 1;
 }
