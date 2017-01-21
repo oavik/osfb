@@ -145,6 +145,16 @@ function checklines() {
 	}
 }
 
+function hascollision(piece) {
+	for (var i = 0; i < 4; i++) {
+		var block = blocktype(piece.top + piece[i].y, piece.left + piece[i].x);
+		if (block != "" && !block.includes("current")) {
+			return true;
+		}
+	}
+	return false;
+}
+
 function advance() {
 	if (currentpiece.top + currentpiece.height == fieldheight - 1) {
 		lockpiece(currentpiece);
@@ -154,63 +164,42 @@ function advance() {
 		return;
 	}
 
-	for (var i = 0; i < 4; i++) {
-		var below = blocktype(currentpiece.top + currentpiece[i].y + 1, currentpiece.left + currentpiece[i].x);
-		if (below != "" && !below.includes("current")) {
-			lockpiece(currentpiece);
-			currentpiece = nextpiece();
-			for (var i = 0; i < 4; i++) {
-				if (blocktype(currentpiece[i].y, currentpiece[i].x) != "") {
-					gameover();
-					return;
-				}
-			}
-			
-			checklines();
-			drawpiece(currentpiece);
-			return;
-		}
-	}
-
 	clearpiece(currentpiece);
 	currentpiece.top++;
+
+	if (hascollision(currentpiece)) {
+		currentpiece.top--;
+		lockpiece(currentpiece);
+		checklines();
+		currentpiece = nextpiece();
+		drawpiece(currentpiece);
+		if (hascollision(currentpiece)) {
+			gameover();
+		}
+		return;
+	}
+
 	drawpiece(currentpiece);
 }
 
 function left() {
 	cleartimer();
-	if (currentpiece.left < 1) {
-		settimer();
-		return;
-	}
-	for (var i = 0; i < 4; i++) {
-		var left = blocktype(currentpiece.top + currentpiece[i].y, currentpiece.left + currentpiece[i].x - 1);
-		if (left != "" && !left.includes("current")) {
-			settimer();
-			return;
-		}
-	}
 	clearpiece(currentpiece);
 	currentpiece.left--;
+	if (currentpiece.left < 0 || hascollision(currentpiece)) {
+		currentpiece.left++;
+	}
 	drawpiece(currentpiece);
 	settimer();
 }
 
 function right() {
 	cleartimer();
-	if (currentpiece.left + currentpiece.width >= fieldwidth - 1) {
-		settimer();
-		return;
-	}
-	for (var i = 0; i < 4; i++) {
-		var right = blocktype(currentpiece.top + currentpiece[i].y, currentpiece.left + currentpiece[i].x + 1);
-		if (right != "" && !right.includes("current")) {
-			settimer();
-			return;
-		}
-	}
 	clearpiece(currentpiece);
 	currentpiece.left++;
+	if (currentpiece.left + currentpiece.width >= fieldwidth || hascollision(currentpiece)) {
+		currentpiece.left--;
+	}
 	drawpiece(currentpiece);
 	settimer();
 }
