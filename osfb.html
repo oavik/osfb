@@ -17,7 +17,84 @@ span { width: 10px; height: 10px; display: inline-block; }
 #playfield { background: black; width: 100px; margin-left: auto; margin-right: auto; }
 </style>
 <script type="text/javascript">
+var currentpiece = undefined;
+var timer;
+
+function nextpiece() {
+	var pieces = [ 'i', 'j', 'l', 'o', 's', 't', 'z' ];
+	var piece = pieces[Math.random() * pieces.length];
+	return piece;
+}
+
+function clearlines() {
+	currentpiece = nextpiece();
+}
+
+function advance() {
+	console.log("advancing pieces");
+	if (currentpiece == undefined) {
+		return;
+	}
+	console.log("current piece is " + currentpiece);
+
+	/*
+	for (var black in currentpiece) {
+		
+	}
+	*/
+
+	clearlines();
+}
+
+function left() {
+}
+
+function right() {
+}
+
+function softdrop() {
+}
+
+function harddrop() {
+	clearlines();
+}
+
+function clockwise() {
+}
+
+function counterclockwise() {
+}
+
+function startgame() {
+	timer = window.setInterval(advance, 500);
+}
+
+function quitgame() {
+	window.clearInterval(timer);
+}
+
 function init() {
+	window.onkeyup = function(e) {
+		var key = e.keyCode ? e.keyCode : e.which;
+		switch (key) {
+		case 32: /* space */
+		case 13: /* enter */
+			startgame();
+			break;
+
+		case 27: /* escape */
+			quitgame();
+			break;
+		
+		case 37: left(); break;
+		case 38: harddrop(); break;
+		case 39: right(); break;
+		case 40: down(); break;
+                default:
+			console.log(key);
+                        return false;
+                }
+        }
 	
 }
 </script>
