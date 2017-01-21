@@ -22,26 +22,40 @@ var timer;
 
 function nextpiece() {
 	var pieces = [ 'i', 'j', 'l', 'o', 's', 't', 'z' ];
-	var piece = pieces[Math.random() * pieces.length];
+	var piece = {};
+	piece.type = pieces[Math.floor(Math.random() * pieces.length)];
+	switch (piece.type) {
+		case 'i': piece[0] = { y: 0, x: 4 }; piece[1] = { y: 1, x: 4 }; piece[2] = { y: 2, x: 4 }; piece[3] = { y: 3, x: 4 }; break;
+		case 'j': piece[0] = { y: 0, x: 3 }; piece[1] = { y: 0, x: 4 }; piece[2] = { y: 0, x: 5 }; piece[3] = { y: 1, x: 5 }; break;
+		case 'l': piece[0] = { y: 0, x: 3 }; piece[1] = { y: 0, x: 4 }; piece[2] = { y: 0, x: 5 }; piece[3] = { y: 1, x: 3 }; break;
+		case 'o': piece[0] = { y: 0, x: 4 }; piece[1] = { y: 0, x: 5 }; piece[2] = { y: 1, x: 4 }; piece[3] = { y: 1, x: 5 }; break;
+		case 's': piece[0] = { y: 0, x: 4 }; piece[1] = { y: 0, x: 5 }; piece[2] = { y: 1, x: 3 }; piece[3] = { y: 1, x: 4 }; break;
+		case 't': piece[0] = { y: 0, x: 3 }; piece[1] = { y: 0, x: 4 }; piece[2] = { y: 0, x: 5 }; piece[3] = { y: 1, x: 4 }; break;
+		case 'z': piece[0] = { y: 0, x: 3 }; piece[1] = { y: 0, x: 4 }; piece[2] = { y: 1, x: 4 }; piece[3] = { y: 1, x: 5 }; break;
+	}
 	return piece;
 }
 
 function clearlines() {
-	currentpiece = nextpiece();
 }
 
 function advance() {
-	console.log("advancing pieces");
 	if (currentpiece == undefined) {
-		return;
-	}
-	console.log("current piece is " + currentpiece);
-
-	/*
-	for (var black in currentpiece) {
+		currentpiece = nextpiece();
+	} else {
+		for (var block = 0; block < 4; block++) {
+			var e = document.getElementById(currentpiece[block].y + "-" + currentpiece[block].x);
+			e.className = undefined;
+			currentpiece[block].y++;
+		}
 		
 	}
-	*/
+
+	for (var block = 0; block < 4; block++) {
+		var e = document.getElementById(currentpiece[block].y + "-" + currentpiece[block].x);
+		console.log(e.style);
+		e.className = currentpiece.type;
+	}
 
 	clearlines();
 }
