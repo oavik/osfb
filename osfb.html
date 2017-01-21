@@ -23,7 +23,7 @@ var fieldheight = 20;
 var currentpiece = undefined;
 
 function nextpiece() {
-	var pieces = [ 'i', 'j', 'l', 'o', 's', 't', 'z' ];
+	var pieces = [ 'i', 'o' ]; //[ 'i', 'j', 'l', 'o', 's', 't', 'z' ];
 	var piece = {};
 	piece.type = pieces[Math.floor(Math.random() * pieces.length)];
 	piece.left = fieldwidth;
@@ -49,6 +49,7 @@ function nextpiece() {
 function cleartimer() { window.clearInterval(window.timer); }
 function settimer() { window.timer = window.setInterval(advance, 500); }
 function getblock(y, x) { return document.getElementById(y + "-" + x); }
+function blocktype(y, x) { return getblock(y,x).className; }
 function clearblock(y, x) { getblock(y, x).className = ""; }
 function setblock(y, x, t) { getblock(y, x).className = t; }
 
@@ -59,18 +60,46 @@ function gameover() {
 	go.style.display = "block";
 }
 
+function clearline(y) {
+	for (var x = 0; x < fieldwidth; x++) {
+		if (blocktype(y, x) == "") {
+			return 0;
+		}
+	}
+	for (var x = 0; x < fieldwidth; x++) {
+		if (y > 0) {
+			setblock(y, x, blocktype(y - 1, x));
+		} else {
+			clearblock(y, x);
+		}
+	}
+	return 1;
+}
+
+
+function clearlines() {
+	var lines = 0;
+	for (var y = 0; y < fieldheight; y++) {
+		lines += clearline(y);
+	}
+
+	console.log("cleared " + lines + " lines");
+}
+
 function advance() {
 	for (var block = 0; block < 4; block++) {
 		if ((currentpiece[block].y == currentpiece.bottom && currentpiece[block].y + 1 >= fieldheight)
-			|| ((currentpiece[block].y == currentpiece.bottom && getblock(currentpiece[block].y + 1, currentpiece[block].x).className != ""))) {
+			|| ((currentpiece[block].y == currentpiece.bottom && blocktype(currentpiece[block].y + 1, currentpiece[block].x) != ""))) {
 			currentpiece = nextpiece();
+			/*
 			for (var i = 0; i < 4; i++) {
-				if (getblock(currentpiece[i].y, currentpiece[i].x).className != "") {
+				if (blocktype(currentpiece[i].y, currentpiece[i].x) != "") {
 					gameover();
 					return;
 				}
 			}
-			/* check for cleared lines */
+			*/
+			clearlines();
 		}
 	}
 		
@@ -93,7 +122,7 @@ function left() {
 			settimer();
 			return;
 		}
-		if (currentpiece[block].x == currentpiece.left && getblock(currentpiece[block].y, currentpiece[block].x - 1).className != "") {
+		if (currentpiece[block].x == currentpiece.left && blocktype(currentpiece[block].y, currentpiece[block].x - 1) != "") {
 			settimer();
 			return;
 		}
@@ -115,7 +144,7 @@ function right() {
 			settimer();
 			return;
 		}
-		if (currentpiece[block].x == currentpiece.right && getblock(currentpiece[block].y, currentpiece[block].x + 1).className != "") {
+		if (currentpiece[block].x == currentpiece.right && blocktype(currentpiece[block].y, currentpiece[block].x + 1) != "") {
 			settimer();
 			return;
 		}
