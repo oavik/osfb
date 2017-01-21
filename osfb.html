@@ -79,7 +79,7 @@ function nextpiece() {
 }
 
 function cleartimer() { window.clearInterval(window.timer); }
-function settimer() { window.timer = window.setInterval(advanceone, 500); }
+function settimer() { window.timer = window.setInterval(advanceone, window.gamedelay); }
 function getblock(y, x) { return document.getElementById(y + "-" + x); }
 function blocktype(y, x) { return getblock(y,x).className; }
 function clearblock(y, x) { if (getblock(y, x)) { getblock(y, x).className = ""; } }
@@ -145,6 +145,12 @@ function lockpiece(piece) {
 function checklines() {
 	var cleared = clearlines();
 	if (cleared > 0) {
+		if (window.lines % 10 + cleared > 9) {
+			cleartimer();
+			window.gamedelay -= window.gamedelay / 10;
+			console.log("Decreasing delay to " + delay);
+			settimer();
+		}
 		window.score += scores[cleared];
 		window.lines += cleared;
 		updatescore();
@@ -162,7 +168,7 @@ function hascollision(piece) {
 }
 
 function advance(rows) {
-	console.log("advancing " + rows);
+	//console.log("advancing " + rows);
 	if (currentpiece.top + currentpiece.height == fieldheight - 1) {
 		lockpiece(currentpiece);
 		currentpiece = nextpiece();
@@ -172,7 +178,7 @@ function advance(rows) {
 	}
 
 	clearpiece(currentpiece);
-	while (rows > 0 && !hascollision(currentpiece)) {
+	while (rows > 0 && !hascollision(currentpiece) && currentpiece.top + currentpiece.height <= fieldheight-1) {
 		currentpiece.top++;
 		rows--;
 	}
@@ -356,6 +362,7 @@ function resize() {
 
 function reinit() {
 	resize();
+	window.gamedelay = 500;
 	window.onresize = resize;
 	window.onkeydown = function(e) {
 		var key = e.keyCode ? e.keyCode : e.which;
