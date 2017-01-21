@@ -36,41 +36,78 @@ function nextpiece() {
 	return piece;
 }
 
-function clearlines() {
-}
+function getblock(y, x) { return document.getElementById(y + "-" + x); }
+function clearblock(y, x) { getblock(y, x).className = undefined; }
+function setblock(y, x, t) { getblock(y, x).className = t; }
 
 function advance() {
 	if (currentpiece == undefined) {
 		currentpiece = nextpiece();
 	} else {
 		for (var block = 0; block < 4; block++) {
-			var e = document.getElementById(currentpiece[block].y + "-" + currentpiece[block].x);
-			e.className = undefined;
-			currentpiece[block].y++;
+			if (currentpiece[block].y > 18) {
+				currentpiece = nextpiece();
+			}
+		}
+		
+		for (var block = 0; block < 4; block++) {
+			clearblock(currentpiece[block].y, currentpiece[block].x);
 		}
 		
 	}
 
 	for (var block = 0; block < 4; block++) {
-		var e = document.getElementById(currentpiece[block].y + "-" + currentpiece[block].x);
-		console.log(e.style);
-		e.className = currentpiece.type;
+		currentpiece[block].y++;
+		setblock(currentpiece[block].y, currentpiece[block].x, currentpiece.type);
 	}
 
-	clearlines();
+	timer = window.setTimeout(advance, 500);
 }
 
 function left() {
+	for (var block = 0; block < 4; block++) {
+		if (currentpiece[block].x < 1) {
+			return;
+		}
+	/*
+		if (getblock(currentpiece[block].y, currentpiece[block].x - 1).className != undefined) {
+			console.log("something in the way");
+			return;
+		}
+	*/
+	}
+	for (var block = 0; block < 4; block++) {
+		clearblock(currentpiece[block].y, currentpiece[block].x);
+		currentpiece[block].x--;
+		setblock(currentpiece[block].y, currentpiece[block].x, currentpiece.type);
+	}
 }
 
 function right() {
+	for (var block = 0; block < 4; block++) {
+		if (currentpiece[block].x > 8) {
+			return;
+		}
+	/*
+		if (getblock(currentpiece[block].y, currentpiece[block].x + 1).className != undefined) {
+			console.log("something in the way");
+			return;
+		}
+	*/
+	}
+	for (var block = 0; block < 4; block++) {
+		clearblock(currentpiece[block].y, currentpiece[block].x);
+		currentpiece[block].x++;
+		setblock(currentpiece[block].y, currentpiece[block].x, currentpiece.type);
+	}
 }
 
 function softdrop() {
+	window.clearTimeout(timer);
+	advance();
 }
 
 function harddrop() {
-	clearlines();
 }
 
 function clockwise() {
@@ -80,11 +117,11 @@ function counterclockwise() {
 }
 
 function startgame() {
-	timer = window.setInterval(advance, 500);
+	timer = window.setTimeout(advance, 500);
 }
 
 function quitgame() {
-	window.clearInterval(timer);
+	window.clearTimetout(timer);
 }
 
 function init() {
@@ -103,7 +140,7 @@ function init() {
 		case 37: left(); break;
 		case 38: harddrop(); break;
 		case 39: right(); break;
-		case 40: down(); break;
+		case 40: softdrop(); break;
                 default:
 			console.log(key);
                         return false;
