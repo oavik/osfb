@@ -193,8 +193,8 @@ function move(amount) {
 	cleartimer();
 	clearpiece(currentpiece);
 	currentpiece.left += amount
-	if (isoutofbounds(currentpiece) || hascollision(currentpiece)) {
-		currentpiece.left -= amount;
+	while (isoutofbounds(currentpiece) || hascollision(currentpiece)) {
+		currentpiece.left += (amount < 0) ? 1 : -1;
 	}
 	drawpiece(currentpiece);
 	settimer();
@@ -232,7 +232,6 @@ function rotate(dir) {
 
 function touchstart(e) {
 	e.preventDefault();
-	console.log("start"); console.log(e.touches[0]);
 	window.touchx = e.touches[0].screenX;
 	window.touchy = e.touches[0].screenY;
 }
@@ -242,7 +241,7 @@ function touchend(e) {
 	var dx = window.touchx - e.changedTouches[0].screenX;
 	var dy = window.touchy - e.changedTouches[0].screenY;
 	if (dx > 10 || dx < -10) {
-		move(dx / 10);
+		move(Math.floor(-dx / (window.innerWidth / 10)));
 	} else if (dy < -10) {
 		//for (i = 0; i < dy / -10; i++) {
 			advance();
@@ -301,20 +300,15 @@ function startgame() {
 			break;
 
                 default:
-			console.log(key);
+			//console.log(key);
                 }
         }
 
 	window.onclick = undefined;
 
-	var span = document.getElementsByTagName("span");
-
-	for (var i = 0; i < span.length; i++) {
-		//span[i].addEventListener('touchmove', swipe, false);
-		span[i].addEventListener('touchstart', touchstart, false);
-		//span[i].addEventListener('touchcancel', swipe, false);
-		span[i].addEventListener('touchend', touchend, false);
-	}
+	var body = document.getElementsByTagName("body")[0];
+		body.addEventListener('touchstart', touchstart, false);
+		body.addEventListener('touchend', touchend, false);
 
 	currentpiece = nextpiece();
 	drawpiece(currentpiece);
@@ -344,12 +338,6 @@ function resize() {
 
 	var sb = document.getElementById("scoreboard");
 	sb.style.width = (fieldwidth * window.blocksize) + "px";
-
-	if (window.innerWidth > window.innerHeight) {
-		/* wide */
-	} else {
-		/* tall */
-	}
 }
 
 function reinit() {
