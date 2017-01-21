@@ -184,23 +184,16 @@ function advance() {
 	drawpiece(currentpiece);
 }
 
-function left() {
-	cleartimer();
-	clearpiece(currentpiece);
-	currentpiece.left--;
-	if (currentpiece.left < 0 || hascollision(currentpiece)) {
-		currentpiece.left++;
-	}
-	drawpiece(currentpiece);
-	settimer();
+function isoutofbounds(piece) {
+	return (piece.left < 0 || piece.left + piece.width >= fieldwidth);
 }
 
-function right() {
+function move(amount) {
 	cleartimer();
 	clearpiece(currentpiece);
-	currentpiece.left++;
-	if (currentpiece.left + currentpiece.width >= fieldwidth || hascollision(currentpiece)) {
-		currentpiece.left--;
+	currentpiece.left += amount
+	if (isoutofbounds(currentpiece) || hascollision(currentpiece)) {
+		currentpiece.left -= amount;
 	}
 	drawpiece(currentpiece);
 	settimer();
@@ -247,18 +240,12 @@ function touchend(e) {
 	e.preventDefault();
 	var dx = window.touchx - e.changedTouches[0].screenX;
 	var dy = window.touchy - e.changedTouches[0].screenY;
-	if (dx > 10) {
-		for (i = 0; i < dx / 10; i++) {
-			left();
-		}
-	} else if (dx < -10) {
-		for (i = 0; i < dx / -10; i++) {
-			right();
-		}
+	if (dx > 10 || dx < -10) {
+		move(dx / 10);
 	} else if (dy < -10) {
-		for (i = 0; i < dy / -10; i++) {
+		//for (i = 0; i < dy / -10; i++) {
 			advance();
-		}
+		//}
 	} else {
 		rotate(1);
 	}
@@ -295,7 +282,7 @@ function startgame() {
 		
 		case 37: /* left */
 		case 87: /* w */
-			left();
+			move(-1);
 			break;
 
 		case 38: /* up */
@@ -304,7 +291,7 @@ function startgame() {
 
 		case 39: /* right */
 		case 83: /* d */
-			right();
+			move(1);
 			break;
 
 		case 40: /* down */
