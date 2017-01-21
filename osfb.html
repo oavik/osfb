@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <title>Falling Blocks</title>
 <style type="text/css">
+body { background: url(osfb.png); background-opacity: 50%; }
 * { margin: 0; padding: 0; border: 0; }
 span { display: inline-block; border: 1px solid black; }
 .i { background: cyan; }
@@ -14,7 +15,9 @@ span { display: inline-block; border: 1px solid black; }
 .t { background: purple; }
 .z { background: red; }
 #playfield { background: black; margin-left: auto; margin-right: auto; }
-#gameover { display: none; margin-left: auto; margin-right: auto; position: fixed; top: 0; color: white; text-align: center; text-shadow: 1px 1px black; }
+#overlay { display: block; margin-left: auto; margin-right: auto; position: absolute; top: 0; color: white; text-align: center; text-shadow: 1px 1px black; }
+#overlay div + div { margin-top: 2em; }
+#gameover { margin-top: 1em; visibility: hidden; }
 #scoreboard { background: black; margin-left: auto; margin-right: auto; color: white; }
 #scoreboard div { display: inline; }
 #scoreboard div + div { float: right; }
@@ -81,8 +84,8 @@ function setblock(y, x, t) { getblock(y, x).className = t; }
 function gameover() {
 	cleartimer();
 	reinit();
-	var go = document.getElementById("gameover");
-	go.style.display = "block";
+	document.getElementById("overlay").style.display = "block";
+	document.getElementById("gameover").style.visibility = "visible";
 }
 
 function clearline(y) {
@@ -266,8 +269,7 @@ function startgame() {
 	window.lines = 0;
 	updatescore();
 
-	var go = document.getElementById("gameover");
-	go.style.display = "none";
+	var go = document.getElementById("overlay").style.display = "none";
 
 	for (var y = 0; y < fieldheight; y++) {
 		for (var x = 0; x < fieldwidth; x++) {
@@ -347,10 +349,10 @@ function resize() {
 		field.children[i].style.height = window.blocksize + "px";
 	}
 
-	var go = document.getElementById("gameover");
+	var go = document.getElementById("overlay");
 	go.style.width = (fieldwidth * window.blocksize) + "px";
 	go.style.height = (fieldheight * window.blocksize) + "px";
-	go.style.fontSize = (window.blocksize * 4) + "px";
+	go.style.fontSize = (window.blocksize * 2) + "px";
 
 	var sb = document.getElementById("scoreboard");
 	sb.style.width = (fieldwidth * window.blocksize) + "px";
@@ -369,8 +371,6 @@ function reinit() {
 		var key = e.keyCode ? e.keyCode : e.which;
 		switch (key) {
 		case 32: /* space */
-		case 13: /* enter */
-		case 83: /* 's' */
 			startgame();
 			break;
 
@@ -382,9 +382,7 @@ function reinit() {
 }
 
 function init() {
-	var body = document.getElementsByTagName("body")[0];
-	var playfield = document.createElement("div");
-	playfield.id = "playfield";
+	var playfield = document.getElementById("playfield");
 
 	for (var i = 0; i < fieldheight; i++) {
 		var row = document.createElement("div");
@@ -396,7 +394,6 @@ function init() {
 		}
 		playfield.appendChild(row);
        	}
-	body.appendChild(playfield);
 
 	reinit();
 }
@@ -407,7 +404,11 @@ function init() {
 <div>Score: <div id="score">0</div></div>
 <div>Lines: <div id="lines">0</div></div>
 </div>
-<div id="gameover">Game over</div>
+<div id="playfield">
+<div id="overlay">
+<div id="gameover">Game Over</div>
+<div>Click, tap, or press space to begin</div>
+</div>
 </div>
 <!-- <audio src="Korobeiniki.mp3" autoplay loop></audio> -->
 </body>
