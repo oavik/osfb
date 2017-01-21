@@ -235,6 +235,13 @@ function rotate(dir) {
 	}
 	getbounds(currentpiece);
 	/* FIXME: check for out of bounds and collisions */
+	while (isoutofbounds(currentpiece)) {
+		if (currentpiece.left < 0) {
+			currentpiece.left++;
+		} else {
+			currentpiece.left--;
+		}
+	}
 	drawpiece(currentpiece);
 	settimer();
 }
