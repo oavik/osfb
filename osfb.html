@@ -17,6 +17,8 @@ span { width: 10px; height: 10px; display: inline-block; }
 #playfield { background: black; width: 100px; margin-left: auto; margin-right: auto; }
 </style>
 <script type="text/javascript">
+var fieldwidth = 10;
+var fieldheight = 20;
 var currentpiece = undefined;
 var timer;
 
@@ -45,7 +47,7 @@ function advance() {
 		currentpiece = nextpiece();
 	} else {
 		for (var block = 0; block < 4; block++) {
-			if (currentpiece[block].y > 18) {
+			if (currentpiece[block].y+1 >= fieldheight) {
 				currentpiece = nextpiece();
 			}
 		}
@@ -85,7 +87,7 @@ function left() {
 
 function right() {
 	for (var block = 0; block < 4; block++) {
-		if (currentpiece[block].x > 8) {
+		if (currentpiece[block].x+1 >= fieldwidth) {
 			return;
 		}
 	/*
@@ -129,6 +131,9 @@ function init() {
 		var key = e.keyCode ? e.keyCode : e.which;
 		switch (key) {
 		case 32: /* space */
+			clockwise();
+			break;
+
 		case 13: /* enter */
 			startgame();
 			break;
