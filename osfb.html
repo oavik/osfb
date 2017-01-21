@@ -5,8 +5,7 @@
 <title>Falling Blocks</title>
 <style type="text/css">
 * { margin: 0; padding: 0; border: 0; }
-.row { height: 20px; }
-span { width: 20px; height: 20px; display: inline-block; }
+span { display: inline-block; }
 .i { background: cyan; }
 .j { background: blue; }
 .l { background: orange; }
@@ -14,9 +13,9 @@ span { width: 20px; height: 20px; display: inline-block; }
 .s { background: lime; }
 .t { background: purple; }
 .z { background: red; }
-#playfield { background: black; width: 200px; margin-left: auto; margin-right: auto; }
-#gameover { display: none; width: 200px; margin-left: auto; margin-right: auto; position: fixed; font-size: 50px; top: 0; color: white; text-align: center; halign: middle; text-shadow: 1px 1px black; }
-#scoreboard { background: black; width: 200px; margin-left: auto; margin-right: auto; color: white; }
+#playfield { background: black; margin-left: auto; margin-right: auto; }
+#gameover { display: none; margin-left: auto; margin-right: auto; position: fixed; font-size: 50px; top: 0; color: white; text-align: center; text-shadow: 1px 1px black; }
+#scoreboard { background: black; margin-left: auto; margin-right: auto; color: white; }
 #scoreboard div { display: inline; }
 #scoreboard div + div { float: right; }
 </style>
@@ -248,7 +247,39 @@ function startgame() {
 	settimer();
 }
 
+function resize() {
+	var size = Math.floor(Math.min(window.innerWidth / fieldwidth, window.innerHeight / (fieldheight+1)));
+	for (var y = 0; y < fieldheight; y++) {
+		for (var x = 0; x < fieldwidth; x++) {
+			var b = getblock(y, x);
+			b.style.width = size + "px";
+			b.style.height = size + "px";
+		}
+	}
+	var field = document.getElementById("playfield");
+	field.style.width = (fieldwidth * size) + "px";
+	field.style.height = (fieldheight * size) + "px";
+	for (var i = 0; i < field.children.length; i++) {
+		field.children[i].style.height = size + "px";
+	}
+
+	var go = document.getElementById("gameover");
+	go.style.width = (fieldwidth * size) + "px";
+	go.style.height = (fieldheight * size) + "px";
+
+	var sb = document.getElementById("scoreboard");
+	sb.style.width = (fieldwidth * size) + "px";
+
+	if (window.innerWidth > window.innerHeight) {
+		/* wide */
+	} else {
+		/* tall */
+	}
+}
+
 function init() {
+	resize();
+	window.onresize = resize;
 	window.onkeydown = function(e) {
 		var key = e.keyCode ? e.keyCode : e.which;
 		switch (key) {
