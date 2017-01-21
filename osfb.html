@@ -47,10 +47,21 @@ var rotations = {
 	     [ { y: 0, x: 1 }, { y: 1, x: 0 }, { y: 1, x: 1 }, { y: 2, x: 0 } ] ]
 };
 
+function getbounds(piece) {
+	var height = 0;
+	var width = 0;
+	for (var i = 0; i < 4; i++) {
+		if (piece[i].y > height) { height = piece[i].y; }
+		if (piece[i].x > width) { width = piece[i].x; }
+	}
+	piece.left = Math.floor((fieldwidth / 2) - (width / 2));
+	piece.right = piece.left + width;
+	piece.bottom = piece.top + height;
+}
+
 function nextpiece() {
 	var pieces = [ 'i', 'j', 'l', 'o', 's', 't', 'z' ];
 	var piece = {};
-	var width = 0;
 	piece.type = pieces[Math.floor(Math.random() * pieces.length)];
 	piece.left = 0;
 	piece.right = 0;
@@ -60,12 +71,7 @@ function nextpiece() {
 	for (var i = 0; i < 4; i++) {
 		piece[i] = rotations[piece.type][0][i];
 	}
-	for (var i = 0; i < 4; i++) {
-		if (piece[i].y > piece.bottom) { piece.bottom = piece[i].y; }
-		if (piece[i].x > width) { width = piece[i].x; }
-	}
-	piece.left = Math.floor((fieldwidth / 2) - (width / 2));
-	piece.right = piece.left + width;
+	getbounds(piece);
 	return piece;
 }
 
@@ -226,7 +232,7 @@ function harddrop() {
 
 function rotate(dir) {
 	cleartimer();
-	var oldpiece = currentpiece;
+	clearpiece(currentpiece);
 
 	currentpiece.rotation += dir;
 	if (currentpiece.rotation < 0) {
@@ -239,8 +245,8 @@ function rotate(dir) {
 		currentpiece[i].y = rotations[currentpiece.type][currentpiece.rotation][i].y;
 		currentpiece[i].x = rotations[currentpiece.type][currentpiece.rotation][i].x;
 	}
+	getbounds(currentpiece);
 
-	clearpiece(oldpiece);
 	drawpiece(currentpiece);
 	settimer();
 }
