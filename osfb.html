@@ -28,7 +28,7 @@ var scores = [ 0, 100, 200, 400, 800 ];
 var rotations = {
 	i: [ [ { y: 0, x: 3 }, { y: 1, x: 3 }, { y: 2, x: 3 }, { y: 3, x: 3 } ],
 	     [ { y: 0, x: 0 }, { y: 0, x: 1 }, { y: 0, x: 2 }, { y: 0, x: 2 } ] ],
-	j: [ [ { y: 0, x: 0 }, { y: 0, x: 1 }, { y: 0, x: 2 }, { y: 1, x: 3 } ],
+	j: [ [ { y: 0, x: 0 }, { y: 0, x: 1 }, { y: 0, x: 2 }, { y: 1, x: 2 } ],
 	     [ { y: 0, x: 1 }, { y: 1, x: 1 }, { y: 2, x: 0 }, { y: 2, x: 1 } ],
 	     [ { y: 0, x: 0 }, { y: 1, x: 0 }, { y: 1, x: 1 }, { y: 1, x: 2 } ],
 	     [ { y: 0, x: 0 }, { y: 0, x: 1 }, { y: 1, x: 0 }, { y: 2, x: 0 } ] ],
@@ -55,11 +55,12 @@ function nextpiece() {
 	piece.right = 0;
 	piece.top = fieldheight;
 	piece.bottom = 0;
+	piece.rotation = 0;
 	var left = 3;
 	for (var i = 0; i < 4; i++) {
 		piece[i] = rotations[piece.type][0][i];
 		piece[i].x += left;
-		console.log(piece[i]);
+		//console.log(piece[i]);
 	}
 	for (var i = 0; i < 4; i++) {
 		if (piece[i].y < piece.top) { piece.top = piece[i].y; } else if (piece[i].y > piece.bottom) { piece.bottom = piece[i].y; }
@@ -72,7 +73,7 @@ function cleartimer() { window.clearInterval(window.timer); }
 function settimer() { window.timer = window.setInterval(advance, 500); }
 function getblock(y, x) { return document.getElementById(y + "-" + x); }
 function blocktype(y, x) { return getblock(y,x).className; }
-function clearblock(y, x) { getblock(y, x).className = ""; }
+function clearblock(y, x) { if (getblock(y, x)) { getblock(y, x).className = ""; } }
 function setblock(y, x, t) { getblock(y, x).className = t; }
 
 function gameover() {
@@ -202,35 +203,21 @@ function softdrop() {
 function harddrop() {
 }
 
-function clockwise() {
+function rotate(dir) {
+	cleartimer();
 	var oldpiece = currentpiece;
-	switch (oldpiece.type) {
-	case 'i':
-		console.log("clockwise rotating i");
-		if (oldpiece.left == oldpiece.right) {
-			currentpiece.left = Math.max(oldpiece.left - 3, 0);
-			currentpiece.bottom = oldpiece.top;
-			for (var i = 0; i < 4; i++) {
-				currentpiece[i].y = currentpiece.top;
-				currentpiece[i].x = currentpiece.left + i;
-			}
-		} else {
-			currentpiece.left = oldpiece.right;
-			currentpiece.bottom = oldpiece.top + 3;
-			for (var i = 0; i < 4; i++) {
-				currentpiece[i].y = currentpiece.top + i;
-				currentpiece[i].x = currentpiece.left;
-			}
-		}
-		break;
-	case 'j':
-	case 'l':
-	case 'o':
-		/* none necessary */
-		return;
-	case 's':
-	case 't':
-	case 'z':
+
+	currentpiece.rotation += dir;
+	if (currentpiece.rotation < 0) {
+		currentpiece.rotation = rotations[currentpiece.type].length - 1;
+	} else if (currentpiece.rotation >= rotations[currentpiece.type].length) {
+		currentpiece.rotation = 0;
+	}
+
+	for (var i = 0; i < 4; i++) {
+		currentpiece[i] = rotations[currentpiece.type][currentpiece.rotation][i];
+		currentpiece[i].y += currentpiece.top;
+		currentpiece[i].x += currentpiece.left;
 	}
 
 	for (var i = 0; i < 4; i++) {
@@ -239,9 +226,7 @@ function clockwise() {
 	for (var i = 0; i < 4; i++) {
 		setblock(currentpiece[i].y, currentpiece[i].x, currentpiece.type);
 	}
-}
-
-function counterclockwise() {
+	settimer();
 }
 
 function startgame() {
@@ -263,11 +248,11 @@ function startgame() {
 		switch (key) {
 		case 32: /* space */
 		case 90: /* z */
-			clockwise();
+			rotate(1);
 			break;
 
 		case 88: /* x */
-			counterclockwise();
+			rotate(-1);
 			break;
 
 		case 27: /* escape */
