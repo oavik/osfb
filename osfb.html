@@ -5,7 +5,7 @@
 <title>Falling Blocks</title>
 <style type="text/css">
 * { margin: 0; padding: 0; border: 0; }
-span { display: inline-block; }
+span { display: inline-block; border: 1px solid black; }
 .i { background: cyan; }
 .j { background: blue; }
 .l { background: orange; }
@@ -39,10 +39,10 @@ var rotations = {
 	o: [ [ { y: 0, x: 0 }, { y: 0, x: 1 }, { y: 1, x: 0 }, { y: 1, x: 1 } ] ],
 	s: [ [ { y: 0, x: 1 }, { y: 0, x: 2 }, { y: 1, x: 0 }, { y: 1, x: 1 } ],
 	     [ { y: 0, x: 0 }, { y: 1, x: 0 }, { y: 1, x: 1 }, { y: 2, x: 1 } ] ],
-	t: [ [ { y: 1, x: 0 }, { y: 1, x: 1 }, { y: 1, x: 2 }, { y: 2, x: 1 } ],
+	t: [ [ { y: 0, x: 0 }, { y: 0, x: 1 }, { y: 0, x: 2 }, { y: 1, x: 1 } ],
 	     [ { y: 0, x: 1 }, { y: 1, x: 0 }, { y: 1, x: 1 }, { y: 2, x: 1 } ],
 	     [ { y: 0, x: 1 }, { y: 1, x: 0 }, { y: 1, x: 1 }, { y: 1, x: 2 } ],
-	     [ { y: 0, x: 1 }, { y: 1, x: 1 }, { y: 1, x: 2 }, { y: 2, x: 1 } ] ],
+	     [ { y: 0, x: 0 }, { y: 1, x: 0 }, { y: 1, x: 1 }, { y: 2, x: 0 } ] ],
 	z: [ [ { y: 0, x: 0 }, { y: 0, x: 1 }, { y: 1, x: 1 }, { y: 1, x: 2 } ],
 	     [ { y: 0, x: 1 }, { y: 1, x: 0 }, { y: 1, x: 1 }, { y: 2, x: 0 } ] ]
 };
@@ -230,6 +230,7 @@ function softdrop() {
 function harddrop() {
 }
 
+/* FIXME: warping to center */
 function rotate(dir) {
 	cleartimer();
 	clearpiece(currentpiece);
@@ -317,8 +318,8 @@ function resize() {
 	for (var y = 0; y < fieldheight; y++) {
 		for (var x = 0; x < fieldwidth; x++) {
 			var b = getblock(y, x);
-			b.style.width = size + "px";
-			b.style.height = size + "px";
+			b.style.width = (size - 2) + "px";
+			b.style.height = (size - 2) + "px";
 		}
 	}
 	var field = document.getElementById("playfield");
