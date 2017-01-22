@@ -300,10 +300,12 @@ function startgame() {
 		switch (key) {
 		case 32: /* space */
 		case 90: /* z */
+		case 188: /* , */
 			rotate(1);
 			break;
 
 		case 88: /* x */
+		case 190: /* . */
 			rotate(-1);
 			break;
 
@@ -312,27 +314,29 @@ function startgame() {
 			break;
 		
 		case 37: /* left */
-		case 87: /* w */
+		case 65: /* a */
 			move(-1);
 			break;
 
 		case 38: /* up */
+		case 87: /* w */
 			harddrop();
 			break;
 
 		case 39: /* right */
-		case 83: /* d */
+		case 68: /* d */
 			move(1);
 			break;
 
 		case 40: /* down */
-		case 65: /* s */
+		case 83: /* s */
 			softdrop();
 			break;
 
                 default:
-			//console.log(key);
+			return true;
                 }
+		return false;
         }
 
 	window.onclick = undefined;
@@ -394,17 +398,7 @@ function reinit() {
 	}
 	window.gamedelay = 500;
 	window.onresize = resize;
-	window.onkeydown = function(e) {
-		var key = e.keyCode ? e.keyCode : e.which;
-		switch (key) {
-		case 32: /* space */
-			startgame();
-			break;
-
-                default:
-			//console.log(key);
-                }
-        }
+	window.onkeydown = function(e) { return true; }
 }
 
 function init() {
