@@ -5,7 +5,7 @@
 <title>Falling Blocks</title>
 <link rel="shortcut icon" href="osfb.ico">
 <style type="text/css">
-body { background: url(osfb.png); background-opacity: 50%; }
+body { background: url(osfb.png); background-opacity: 50%; overflow: hidden; }
 * { margin: 0; padding: 0; border: 0; }
 span { display: inline-block; border: 1px solid black; }
 .i { background: cyan; }
@@ -16,8 +16,7 @@ span { display: inline-block; border: 1px solid black; }
 .t { background: purple; }
 .z { background: red; }
 #playfield { background: black; margin-left: auto; margin-right: auto; }
-#overlay { display: block; margin-left: auto; margin-right: auto; position: absolute; top: 0; color: white; text-align: center; text-shadow: 1px 1px black; }
-#gameover { margin-top: 1em; visibility: hidden; }
+#gameover { visibility: hidden; margin-left: auto; margin-right: auto; position: absolute; top: 2em; color: white; text-align: center; text-shadow: 1px 1px black; }
 #scoreboard { background: black; margin-left: auto; margin-right: auto; color: white; }
 #scoreboard div { display: inline; }
 #scoreboard div + div { float: right; }
@@ -93,7 +92,6 @@ function setblock(y, x, t) { getblock(y, x).className = t; }
 function gameover() {
 	cleartimer();
 	reinit();
-	document.getElementById("overlay").style.display = "block";
 	document.getElementById("gameover").style.visibility = "visible";
 }
 
@@ -282,7 +280,7 @@ function startgame() {
 	window.lines = 0;
 	updatescore();
 
-	document.getElementById("overlay").style.display = "none";
+	document.getElementById("gameover").style.visibility = "hidden";
 
 	var buttons = document.getElementsByTagName("button");
 	for (var i = 0; i < buttons.length; i++) {
@@ -368,7 +366,7 @@ function resize() {
 		field.children[i].style.height = window.blocksize + "px";
 	}
 
-	var go = document.getElementById("overlay");
+	var go = document.getElementById("gameover");
 	go.style.width = (fieldwidth * window.blocksize) + "px";
 	go.style.height = (fieldheight * window.blocksize) + "px";
 	go.style.fontSize = (window.blocksize * 2) + "px";
@@ -425,9 +423,7 @@ function init() {
 	<div>Lines: <div id="lines">0</div></div>
 </div>
 <div id="playfield">
-	<div id="overlay">
-		<div id="gameover">Game Over</div>
-	</div>
+	<div id="gameover">Game Over</div>
 </div>
 <div id="controls">
 	<button id="start" onclick="startgame();">Start</button>
