@@ -265,6 +265,7 @@ function touchstart(e) {
 
 function touchend(e) {
 	e.preventDefault();
+	console.log(this);
 	var dx = window.touchx - e.changedTouches[0].screenX;
 	var dy = window.touchy - e.changedTouches[0].screenY;
 	if (dx > (window.innerWidth / fieldwidth) || dx < -(window.innerWidth / fieldwidth)) {
@@ -336,9 +337,9 @@ function startgame() {
 
 	window.onclick = undefined;
 
-	var body = document.getElementsByTagName("body")[0];
-		body.addEventListener('touchstart', touchstart, false);
-		body.addEventListener('touchend', touchend, false);
+	var field = document.getElementById("playfield");
+	field.addEventListener('touchstart', touchstart, false);
+	field.addEventListener('touchend', touchend, false);
 
 	currentpiece = nextpiece();
 	drawpiece(currentpiece);
