@@ -17,11 +17,16 @@ span { display: inline-block; border: 1px solid black; }
 .z { background: red; }
 #playfield { background: black; margin-left: auto; margin-right: auto; }
 #overlay { display: block; margin-left: auto; margin-right: auto; position: absolute; top: 0; color: white; text-align: center; text-shadow: 1px 1px black; }
-#overlay div + div { margin-top: 2em; }
 #gameover { margin-top: 1em; visibility: hidden; }
 #scoreboard { background: black; margin-left: auto; margin-right: auto; color: white; }
 #scoreboard div { display: inline; }
 #scoreboard div + div { float: right; }
+/* #start { width: 100% ! important; background: red; } */
+#ccw, #mvleft, #cw, #mvright { visibility: hidden; }
+#ccw, #mvleft { float: left; }
+#cw, #mvright { float: right; }
+#controls { margin-left: auto; margin-right: auto; background: rgba(0, 0, 0, 0.5); }
+#controls button { background: transparent; color: white; width: 20%; }
 </style>
 <script type="text/javascript">
 var fieldwidth = 10;
@@ -276,7 +281,12 @@ function startgame() {
 	window.lines = 0;
 	updatescore();
 
-	var go = document.getElementById("overlay").style.display = "none";
+	document.getElementById("overlay").style.display = "none";
+
+	var buttons = document.getElementsByTagName("button");
+	for (var i = 0; i < buttons.length; i++) {
+		buttons[i].style.visibility = buttons[i].id == "start" ? "hidden" : "visible";
+	}
 
 	for (var y = 0; y < fieldheight; y++) {
 		for (var x = 0; x < fieldwidth; x++) {
@@ -336,7 +346,8 @@ function startgame() {
 }
 
 function resize() {
-	window.blocksize = Math.floor(Math.min(window.innerWidth / fieldwidth, window.innerHeight / (fieldheight+1)));
+	window.blocksize = Math.floor(Math.min(window.innerWidth / (fieldwidth), window.innerHeight / (fieldheight+2)));
+
 	for (var y = 0; y < fieldheight; y++) {
 		for (var x = 0; x < fieldwidth; x++) {
 			var b = getblock(y, x);
@@ -344,6 +355,7 @@ function resize() {
 			b.style.height = (window.blocksize - 2) + "px";
 		}
 	}
+
 	var field = document.getElementById("playfield");
 	field.style.width = (fieldwidth * window.blocksize) + "px";
 	field.style.height = (fieldheight * window.blocksize) + "px";
@@ -358,10 +370,27 @@ function resize() {
 
 	var sb = document.getElementById("scoreboard");
 	sb.style.width = (fieldwidth * window.blocksize) + "px";
+
+	var start = document.getElementById("start");
+	start.style.fontSize = window.blocksize + "px";
+	start.style.height = (window.blocksize * 3) + "px";
+
+	var controls = document.getElementById("controls");
+	controls.style.width = (fieldwidth * window.blocksize) + "px";
+
+	var buttons = document.getElementsByTagName("button");
+	for (var i = 0; i < buttons.length; i++) {
+		buttons[i].style.fontSize = window.blocksize + "px";
+		buttons[i].style.height = window.blocksize + "px";
+	}
 }
 
 function reinit() {
 	resize();
+	var buttons = document.getElementsByTagName("button");
+	for (var i = 0; i < buttons.length; i++) {
+		buttons[i].style.visibility = buttons[i].id == "start" ? "visible" : "hidden";
+	}
 	window.gamedelay = 500;
 	window.onresize = resize;
 	window.onkeydown = function(e) {
@@ -375,7 +404,6 @@ function reinit() {
 			//console.log(key);
                 }
         }
-	window.onclick = startgame;
 }
 
 function init() {
@@ -398,14 +426,20 @@ function init() {
 </head>
 <body onload="init();">
 <div id="scoreboard">
-<div>Score: <div id="score">0</div></div>
-<div>Lines: <div id="lines">0</div></div>
+	<div>Score: <div id="score">0</div></div>
+	<div>Lines: <div id="lines">0</div></div>
 </div>
 <div id="playfield">
-<div id="overlay">
-<div id="gameover">Game Over</div>
-<div>Click, tap, or press space to begin</div>
+	<div id="overlay">
+		<div id="gameover">Game Over</div>
+	</div>
 </div>
+<div id="controls">
+	<button id="start" onclick="startgame();">Start</button>
+	<button id="ccw" onclick="rotate(1);">&#x27f2;</button>
+	<button id="mvleft" onclick="move(-1);">&#x27f5;</button>
+	<button id="cw" onclick="rotate(-1);">&#x27f3;</button>
+	<button id="mvright" onclick="move(1);">&#x27f6;</button>
 </div>
 <!-- <audio src="Korobeiniki.mp3" autoplay loop></audio> -->
 </body>
